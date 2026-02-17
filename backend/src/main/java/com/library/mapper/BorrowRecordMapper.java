@@ -45,5 +45,8 @@ public interface BorrowRecordMapper {
     @Select("SELECT b.category, COUNT(*) as count FROM borrow_record br " +
             "LEFT JOIN book b ON br.book_id = b.id " +
             "GROUP BY b.category")
+    List<Map<String, Object>> countBorrowByCategory();
+
+    @Select("SELECT category, COUNT(*) as count FROM book GROUP BY category")
     List<Map<String, Object>> countByCategory();
 }

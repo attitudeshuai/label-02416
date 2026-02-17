@@ -46,7 +46,11 @@
         <div class="card-header">
           <h3>图书分类统计</h3>
         </div>
-        <div class="chart-container" ref="chartRef"></div>
+        <div class="chart-container" ref="chartRef" v-show="hasCategoryData"></div>
+        <div class="chart-empty" v-show="!hasCategoryData">
+          <el-icon><PieChart /></el-icon>
+          <span>暂无分类数据</span>
+        </div>
       </div>
 
       <!-- 最新图书列表 -->
@@ -112,6 +116,7 @@
 <script>
 import { ref, onMounted, computed } from 'vue'
 import { Reading, User, Collection, Refresh } from '@element-plus/icons-vue'
+import { PieChart } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 import { dashboardApi, bookApi } from '../api'
 
@@ -121,7 +126,7 @@ import { dashboardApi, bookApi } from '../api'
  */
 export default {
   name: 'DashboardView',
-  components: { Reading, User, Collection, Refresh },
+  components: { Reading, User, Collection, Refresh, PieChart },
   setup() {
     // 用户昵称
     const nickname = ref(localStorage.getItem('nickname') || '用户')
@@ -130,6 +135,7 @@ export default {
     const stats = ref({})
     const latestBooks = ref([])
     const chartRef = ref(null)
+    const hasCategoryData = ref(false)
     let chartInstance = null
 
     // 统计卡片配置
@@ -187,7 +193,11 @@ export default {
         
         if (statsRes.code === 200) {
           stats.value = statsRes.data
-          initChart(statsRes.data.categoryStats || [])
+          const categoryData = statsRes.data.categoryStats || []
+          hasCategoryData.value = categoryData.length > 0
+          if (hasCategoryData.value) {
+            initChart(categoryData)
+          }
         }
         
         if (booksRes.code === 200) {
@@ -296,7 +306,8 @@ export default {
       chartRef,
       statCards,
       getBookColor,
-      refreshData
+      refreshData,
+      hasCategoryData
     }
   }
 }
@@ -486,6 +497,26 @@ export default {
 
 .chart-container {
   height: 280px;
+}
+
+/* 图表空状态 */
+.chart-empty {
+  height: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #86868b;
+  gap: 16px;
+}
+
+.chart-empty .el-icon {
+  font-size: 64px;
+  opacity: 0.3;
+}
+
+.chart-empty span {
+  font-size: 14px;
 }
 
 /* 图书列表 */

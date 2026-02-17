@@ -34,9 +34,10 @@
           <template #default="{ row }">{{ row.price ? `¥${row.price}` : '-' }}</template>
         </el-table-column>
         <el-table-column prop="stock" label="库存" width="70" />
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="240" fixed="right">
           <template #default="{ row }">
-            <el-button size="small" type="success" @click="handleBorrow(row)" :disabled="row.stock <= 0">借阅</el-button>
+            <el-button v-if="isBorrowed(row.id)" size="small" type="info" disabled style="width: 52px;">已借阅</el-button>
+            <el-button v-else size="small" type="success" @click="handleBorrow(row)" :disabled="row.stock <= 0" style="width: 52px;">借阅</el-button>
             <el-button v-if="isAdmin" size="small" type="primary" @click="showEditDialog(row)">编辑</el-button>
             <el-button v-if="isAdmin" size="small" type="danger" @click="handleDelete(row)">删除</el-button>
           </template>
@@ -83,6 +84,18 @@
         <el-form-item label="简介">
           <el-input v-model="bookForm.description" type="textarea" :rows="3" />
         </el-form-item>
+        <el-form-item label="封面图片">
+          <el-upload
+            class="cover-uploader"
+            :show-file-list="false"
+            :http-request="handleCoverUpload"
+            accept="image/*"
+          >
+            <img v-if="bookForm.coverImage" :src="bookForm.coverImage" class="cover-preview" />
+            <el-icon v-else class="cover-uploader-icon"><Plus /></el-icon>
+          </el-upload>
+          <div v-if="uploading" class="upload-tip">上传中...</div>
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
@@ -95,15 +108,19 @@
 <script>
 import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { bookApi, borrowApi } from '../api'
+import { Plus } from '@element-plus/icons-vue'
+import { bookApi, borrowApi, fileApi } from '../api'
 
 export default {
   name: 'BooksView',
+  components: { Plus },
   setup() {
     const loading = ref(false)
     const saving = ref(false)
+    const uploading = ref(false)
     const books = ref([])
     const categories = ref([])
+    const borrowedBookIds = ref(new Set())
     const dialogVisible = ref(false)
     const dialogTitle = ref('添加图书')
     const bookFormRef = ref(null)
@@ -114,7 +131,7 @@ export default {
     const pagination = reactive({ pageNum: 1, pageSize: 10, total: 0 })
     const bookForm = reactive({
       id: null, title: '', author: '', isbn: '', publisher: '',
-      category: '', price: null, stock: 0, description: ''
+      category: '', price: null, stock: 0, description: '', coverImage: ''
     })
     const bookRules = {
       title: [{ required: true, message: '请输入书名', trigger: 'blur' }],
@@ -153,15 +170,43 @@ export default {
     const handleSearch = () => { pagination.pageNum = 1; loadBooks() }
     const resetSearch = () => { searchForm.keyword = ''; searchForm.category = ''; handleSearch() }
 
+    const loadUserBorrows = async () => {
+      if (!userId) return
+      try {
+        const res = await borrowApi.getUserRecords(userId)
+        if (res.code === 200) {
+          // 只保留借阅中(status=0)的图书ID
+          borrowedBookIds.value = new Set(
+            res.data.filter(r => r.status === 0).map(r => r.bookId)
+          )
+        }
+      } catch (error) {
+        console.error('加载借阅记录失败:', error)
+      }
+    }
+
+    const isBorrowed = (bookId) => borrowedBookIds.value.has(bookId)
+
     const showAddDialog = () => {
       dialogTitle.value = '添加图书'
-      Object.assign(bookForm, { id: null, title: '', author: '', isbn: '', publisher: '', category: '', price: null, stock: 0, description: '' })
+      Object.assign(bookForm, { id: null, title: '', author: '', isbn: '', publisher: '', category: '', price: null, stock: 0, description: '', coverImage: '' })
       dialogVisible.value = true
     }
 
     const showEditDialog = (row) => {
       dialogTitle.value = '编辑图书'
-      Object.assign(bookForm, row)
+      Object.assign(bookForm, { 
+        id: row.id, 
+        title: row.title, 
+        author: row.author, 
+        isbn: row.isbn, 
+        publisher: row.publisher || '', 
+        category: row.category, 
+        price: row.price, 
+        stock: row.stock, 
+        description: row.description || '', 
+        coverImage: row.coverImage || '' 
+      })
       dialogVisible.value = true
     }
 
@@ -204,19 +249,45 @@ export default {
       try {
         await ElMessageBox.confirm(`确定要借阅《${row.title}》吗？`, '借阅确认', { confirmButtonText: '确定', cancelButtonText: '取消' })
         const res = await borrowApi.borrow(userId, row.id)
-        if (res.code === 200) { ElMessage.success('借阅成功'); loadBooks() }
+        if (res.code === 200) { 
+          ElMessage.success('借阅成功')
+          loadBooks()
+          loadUserBorrows()
+        }
         else ElMessage.error(res.message || '借阅失败')
       } catch (error) {
         if (error !== 'cancel') ElMessage.error('借阅失败')
       }
     }
 
-    onMounted(() => { loadBooks(); loadCategories() })
+    const handleCoverUpload = async (options) => {
+      // 检查文件大小（限制 1MB）
+      if (options.file.size > 1024 * 1024) {
+        ElMessage.warning('图片大小不能超过 1MB')
+        return
+      }
+      uploading.value = true
+      try {
+        const res = await fileApi.upload(options.file)
+        if (res.code === 200) {
+          bookForm.coverImage = res.data.url
+          ElMessage.success('封面上传成功')
+        } else {
+          ElMessage.error(res.message || '上传失败')
+        }
+      } catch (error) {
+        ElMessage.error('上传失败')
+      } finally {
+        uploading.value = false
+      }
+    }
+
+    onMounted(() => { loadBooks(); loadCategories(); loadUserBorrows() })
 
     return {
-      loading, saving, books, categories, searchForm, pagination, dialogVisible, dialogTitle,
+      loading, saving, uploading, books, categories, searchForm, pagination, dialogVisible, dialogTitle,
       bookForm, bookRules, bookFormRef, isAdmin, loadBooks, handleSearch, resetSearch,
-      showAddDialog, showEditDialog, handleSave, handleDelete, handleBorrow
+      showAddDialog, showEditDialog, handleSave, handleDelete, handleBorrow, handleCoverUpload, isBorrowed
     }
   }
 }
@@ -226,4 +297,9 @@ export default {
 .books-page { padding: 20px; }
 .card-header { display: flex; justify-content: space-between; align-items: center; }
 .search-form { margin-bottom: 20px; }
+.cover-uploader :deep(.el-upload) { border: 1px dashed #d9d9d9; border-radius: 6px; cursor: pointer; width: 120px; height: 160px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.cover-uploader :deep(.el-upload:hover) { border-color: #409eff; }
+.cover-uploader-icon { font-size: 28px; color: #8c939d; }
+.cover-preview { width: 120px; height: 160px; object-fit: cover; display: block; }
+.upload-tip { font-size: 12px; color: #909399; margin-top: 5px; }
 </style>

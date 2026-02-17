@@ -8,6 +8,9 @@ module.exports = defineConfig({
         target: 'http://localhost:8416',
         changeOrigin: true
       }
+    },
+    client: {
+      overlay: false
     }
   }
 })

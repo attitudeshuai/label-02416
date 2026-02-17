@@ -49,6 +49,15 @@ public class BookService {
      * @return 更新后的图书
      */
     public Book updateBook(Book book) {
+        // 如果 status 为空，保留原有状态
+        if (book.getStatus() == null) {
+            Book existing = bookMapper.findById(book.getId());
+            if (existing != null) {
+                book.setStatus(existing.getStatus());
+            } else {
+                book.setStatus(1); // 默认上架
+            }
+        }
         bookMapper.update(book);
         return bookMapper.findById(book.getId());
     }

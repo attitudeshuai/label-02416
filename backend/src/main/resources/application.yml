@@ -37,4 +37,4 @@ jwt:
 
 # File upload path
 file:
-  upload-path: ./uploads/
+  upload-path: ${user.home}/library-uploads/

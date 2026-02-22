@@ -219,7 +219,10 @@ export default {
         chartInstance.dispose()
       }
       
-      chartInstance = echarts.init(chartRef.value)
+      // 等待 DOM 更新后再初始化图表
+      setTimeout(() => {
+        if (!chartRef.value) return
+        chartInstance = echarts.init(chartRef.value)
       
       const option = {
         tooltip: {
@@ -282,12 +285,13 @@ export default {
         }]
       }
       
-      chartInstance.setOption(option)
-      
-      // 响应式调整
-      window.addEventListener('resize', () => {
-        chartInstance?.resize()
-      })
+        chartInstance.setOption(option)
+        
+        // 响应式调整
+        window.addEventListener('resize', () => {
+          chartInstance?.resize()
+        })
+      }, 100)
     }
 
     /**

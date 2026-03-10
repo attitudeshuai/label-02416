@@ -138,33 +138,42 @@ export default {
     const hasCategoryData = ref(false)
     let chartInstance = null
 
-    // 统计卡片配置
-    const statCards = computed(() => [
-      {
-        icon: Reading,
-        value: stats.value.totalBooks || 0,
-        label: '图书总数',
-        trend: '+12%',
-        trendType: 'up',
-        gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-      },
-      {
-        icon: User,
-        value: stats.value.totalUsers || 0,
-        label: '注册用户',
-        trend: '+8%',
-        trendType: 'up',
-        gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
-      },
-      {
+    // 用户角色
+    const role = ref(localStorage.getItem('role') || '0')
+    const isAdmin = computed(() => role.value === '1')
+
+    // 统计卡片配置 - 普通用户不显示注册用户数
+    const statCards = computed(() => {
+      const cards = [
+        {
+          icon: Reading,
+          value: stats.value.totalBooks || 0,
+          label: '图书总数',
+          trend: '+12%',
+          trendType: 'up',
+          gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+        }
+      ]
+      if (isAdmin.value) {
+        cards.push({
+          icon: User,
+          value: stats.value.totalUsers || 0,
+          label: '注册用户',
+          trend: '+8%',
+          trendType: 'up',
+          gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
+        })
+      }
+      cards.push({
         icon: Collection,
         value: stats.value.borrowedBooks || 0,
         label: '借阅中',
         trend: '-3%',
         trendType: 'down',
         gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
-      }
-    ])
+      })
+      return cards
+    })
 
     // 图书封面颜色
     const bookColors = [
@@ -305,6 +314,7 @@ export default {
 
     return { 
       nickname,
+      isAdmin,
       stats, 
       latestBooks, 
       chartRef,
@@ -362,7 +372,7 @@ export default {
 /* 统计卡片网格 */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 20px;
   margin-bottom: 24px;
 }
@@ -386,14 +396,14 @@ export default {
 }
 
 .stat-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 14px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 24px;
+  font-size: 18px;
   flex-shrink: 0;
 }
 

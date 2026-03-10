@@ -29,12 +29,8 @@ public class AuthController {
      */
     @PostMapping("/login")
     public Result<Map<String, Object>> login(@Valid @RequestBody LoginRequest request) {
-        try {
-            Map<String, Object> result = userService.login(request);
-            return Result.success(result);
-        } catch (Exception e) {
-            return Result.error(e.getMessage());
-        }
+        Map<String, Object> result = userService.login(request);
+        return Result.success(result);
     }
 
     /**
@@ -44,12 +40,8 @@ public class AuthController {
      */
     @PostMapping("/register")
     public Result<User> register(@Valid @RequestBody RegisterRequest request) {
-        try {
-            User user = userService.register(request);
-            user.setPassword(null); // 隐藏密码
-            return Result.success(user);
-        } catch (Exception e) {
-            return Result.error(e.getMessage());
-        }
+        User user = userService.register(request);
+        user.setPassword(null); // 隐藏密码
+        return Result.success(user);
     }
 }

@@ -46,3 +46,15 @@ CREATE TABLE IF NOT EXISTS `borrow_record` (
     `create_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`)
 );
+
+-- Category table
+CREATE TABLE IF NOT EXISTS `category` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(50) NOT NULL,
+    `description` VARCHAR(200) DEFAULT NULL,
+    `sort` INT NOT NULL DEFAULT 0,
+    `create_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `update_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE (`name`)
+);

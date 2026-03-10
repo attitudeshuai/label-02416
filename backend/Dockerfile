@@ -3,22 +3,6 @@ FROM --platform=$BUILDPLATFORM maven:3.8-eclipse-temurin-11 AS builder
 
 WORKDIR /app
 
-# Configure Maven mirror (Aliyun) for faster downloads in China
-RUN mkdir -p /root/.m2 && \
-    echo '<?xml version="1.0" encoding="UTF-8"?>\n\
-<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"\n\
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"\n\
-          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">\n\
-  <mirrors>\n\
-    <mirror>\n\
-      <id>aliyunmaven</id>\n\
-      <mirrorOf>*</mirrorOf>\n\
-      <name>Aliyun Maven Mirror</name>\n\
-      <url>https://maven.aliyun.com/repository/public</url>\n\
-    </mirror>\n\
-  </mirrors>\n\
-</settings>' > /root/.m2/settings.xml
-
 # Copy pom.xml first for dependency caching
 COPY pom.xml .
 RUN mvn dependency:go-offline -B

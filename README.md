@@ -7,7 +7,11 @@
 ### Docker 启动（推荐）
 
 ```bash
-# 克隆项目后，在根目录执行
+# 克隆项目后，复制环境变量配置文件
+cp .env.example .env
+# 按需修改 .env 中的数据库密码和 JWT 密钥
+
+# 启动所有服务
 docker-compose up --build -d
 
 # 查看运行状态
@@ -22,20 +26,39 @@ docker-compose down
 
 ### 本地启动
 
+> 环境要求：JDK 11+（[下载地址](https://adoptium.net/)）、Node.js 14+、Docker（仅用于 MySQL）
+
 #### 1. 启动数据库
+
+本地启动 MySQL 容器，映射到宿主机 3306 端口（与后端默认配置一致）：
+
 ```bash
 docker run -d \
   --name library-mysql \
   -e MYSQL_ROOT_PASSWORD=123456 \
   -e MYSQL_DATABASE=library_db \
+  -e MYSQL_CHARACTER_SET_SERVER=utf8mb4 \
+  -e MYSQL_COLLATION_SERVER=utf8mb4_unicode_ci \
   -p 3306:3306 \
-  mysql:8.0
+  -v $(pwd)/backend/src/main/resources/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro \
+  mysql:8.0 --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --default-authentication-plugin=mysql_native_password
 ```
+
+> 挂载 `init.sql` 会自动建表并插入测试数据（管理员/普通用户账号及示例图书）。
+> 注意：`docker-compose` 方式将 MySQL 映射到宿主机 3416 端口，而本地启动方式映射到 3306 端口。两种方式不要混用，否则后端会连不上数据库。
 
 #### 2. 启动后端
 ```bash
 cd backend
-mvn clean package -DskipTests
+
+# 数据库密码已在 application.yml 中默认配置为 123456，与上方 MySQL 容器一致
+# JWT Secret 已有默认值，可直接启动；如需自定义可通过环境变量覆盖：
+# export JWT_SECRET=your_secret_key
+# export SPRING_DATASOURCE_PASSWORD=your_password
+
+# 使用 Maven Wrapper，无需本地安装 Maven（首次运行会自动下载）
+# 需要 JDK 11+ 环境
+./mvnw clean package -DskipTests
 java -jar target/library-backend-1.0.0.jar
 ```
 
@@ -48,11 +71,11 @@ npm run serve
 
 ## Services
 
-| 服务 | 地址 | 说明 |
-|------|------|------|
-| 前端 | http://localhost:8081 | Vue.js 前端应用 |
-| 后端 | http://localhost:8416 | Spring Boot API |
-| 数据库 | localhost:3416 | MySQL 数据库 |
+| 服务 | Docker Compose | 本地启动 | 说明 |
+|------|---------------|---------|------|
+| 前端 | http://localhost:8081 | http://localhost:8081 | Vue.js 前端应用 |
+| 后端 | http://localhost:8416 | http://localhost:8416 | Spring Boot API |
+| 数据库 | localhost:3416 | localhost:3306 | MySQL 数据库 |
 
 ## 测试账号
 
@@ -213,9 +236,9 @@ Spring Boot2整合Mybatis框架
 ## 📝 运行单元测试
 
 ```bash
-# 本地运行
+# 本地运行（无需安装 Maven）
 cd backend
-mvn test
+./mvnw test
 
 # Docker运行
 docker run --rm -v "$(pwd)/backend:/app" -w /app maven:3.8-openjdk-11 mvn test

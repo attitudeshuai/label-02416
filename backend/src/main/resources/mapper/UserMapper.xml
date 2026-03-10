@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.library.mapper.UserMapper">
+
+    <select id="findByUsername" resultType="com.library.entity.User">
+        SELECT * FROM sys_user WHERE username = #{username}
+    </select>
+
+    <select id="findById" resultType="com.library.entity.User">
+        SELECT * FROM sys_user WHERE id = #{id}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_user (username, password, nickname, email, phone, role, status)
+        VALUES (#{username}, #{password}, #{nickname}, #{email}, #{phone}, #{role}, #{status})
+    </insert>
+
+    <update id="update">
+        UPDATE sys_user SET nickname = #{nickname}, email = #{email}, phone = #{phone}, avatar = #{avatar}
+        WHERE id = #{id}
+    </update>
+
+    <select id="findAll" resultType="com.library.entity.User">
+        SELECT * FROM sys_user WHERE status = 1
+    </select>
+
+    <select id="count" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM sys_user
+    </select>
+
+</mapper>

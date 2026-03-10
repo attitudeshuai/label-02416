@@ -23,6 +23,10 @@ api.interceptors.request.use(config => {
 api.interceptors.response.use(
   response => response.data,
   error => {
+    if (error.response && error.response.status === 401) {
+      localStorage.clear()
+      window.location.href = '/login'
+    }
     console.error('接口请求错误:', error)
     return Promise.reject(error)
   }
@@ -62,14 +66,28 @@ export const bookApi = {
  * 借阅相关接口
  */
 export const borrowApi = {
-  // 借阅图书
-  borrow: (userId, bookId) => api.post('/borrow/borrow', null, { params: { userId, bookId } }),
-  // 归还图书
-  returnBook: (userId, bookId) => api.post('/borrow/return', null, { params: { userId, bookId } }),
-  // 获取用户借阅记录
-  getUserRecords: (userId) => api.get(`/borrow/user/${userId}`),
+  // 借阅图书（userId从token中获取）
+  borrow: (bookId) => api.post('/borrow/borrow', null, { params: { bookId } }),
+  // 归还图书（userId从token中获取）
+  returnBook: (bookId) => api.post('/borrow/return', null, { params: { bookId } }),
+  // 获取当前用户借阅记录
+  getMyRecords: () => api.get('/borrow/my'),
   // 获取所有借阅记录（管理员）
   getAllRecords: () => api.get('/borrow/all')
+}
+
+/**
+ * 分类管理接口
+ */
+export const categoryApi = {
+  // 获取所有分类
+  list: () => api.get('/categories'),
+  // 添加分类
+  add: (data) => api.post('/categories', data),
+  // 更新分类
+  update: (id, data) => api.put(`/categories/${id}`, data),
+  // 删除分类
+  delete: (id) => api.delete(`/categories/${id}`)
 }
 
 /**
@@ -88,7 +106,7 @@ export const fileApi = {
   upload: (file) => {
     const formData = new FormData()
     formData.append('file', file)
-    return api.post('/files/upload', formData, {
+    return api.post('/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
   }

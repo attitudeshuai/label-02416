@@ -106,7 +106,8 @@ import {
   Reading, 
   Collection, 
   ArrowDown,
-  SwitchButton
+  SwitchButton,
+  Menu as IconMenu
 } from '@element-plus/icons-vue'
 
 /**
@@ -120,7 +121,8 @@ export default {
     Reading, 
     Collection, 
     ArrowDown,
-    SwitchButton
+    SwitchButton,
+    IconMenu
   },
   setup() {
     const router = useRouter()
@@ -137,16 +139,25 @@ export default {
     // 角色文本
     const roleText = computed(() => role.value === '1' ? '管理员' : '普通用户')
     
-    // 导航菜单配置
-    const menuItems = [
-      { path: '/home/dashboard', label: '数据概览', icon: DataAnalysis },
-      { path: '/home/books', label: '图书管理', icon: Reading },
-      { path: '/home/borrow', label: '借阅记录', icon: Collection }
-    ]
+    // 是否管理员
+    const isAdmin = computed(() => role.value === '1')
+    
+    // 导航菜单配置 - 普通用户看到"图书列表"，管理员多一个"分类管理"
+    const menuItems = computed(() => {
+      const items = [
+        { path: '/home/dashboard', label: '数据概览', icon: DataAnalysis },
+        { path: '/home/books', label: isAdmin.value ? '图书管理' : '图书列表', icon: Reading }
+      ]
+      if (isAdmin.value) {
+        items.push({ path: '/home/categories', label: '分类管理', icon: IconMenu })
+      }
+      items.push({ path: '/home/borrow', label: '借阅记录', icon: Collection })
+      return items
+    })
     
     // 当前页面标题
     const currentPageTitle = computed(() => {
-      const item = menuItems.find(m => m.path === activeMenu.value)
+      const item = menuItems.value.find(m => m.path === activeMenu.value)
       return item ? item.label : '智慧图书馆'
     })
 

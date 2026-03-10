@@ -120,7 +120,6 @@ export default {
     const loading = ref(false)
     const records = ref([])
     const isAdmin = computed(() => localStorage.getItem('role') === '1')
-    const userId = localStorage.getItem('userId')
 
     // 统计数据
     const borrowedCount = computed(() => records.value.filter(r => r.status === 0).length)
@@ -145,7 +144,7 @@ export default {
       try {
         const res = isAdmin.value
           ? await borrowApi.getAllRecords()
-          : await borrowApi.getUserRecords(userId)
+          : await borrowApi.getMyRecords()
         if (res.code === 200) {
           records.value = res.data
         }
@@ -171,7 +170,7 @@ export default {
           }
         )
         
-        const res = await borrowApi.returnBook(row.userId, row.bookId)
+        const res = await borrowApi.returnBook(row.bookId)
         if (res.code === 200) {
           ElMessage.success('归还成功')
           loadRecords()

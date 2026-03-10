@@ -8,13 +8,32 @@
         </div>
       </template>
 
-      <!-- 搜索表单 -->
+      <!-- 搜索表单 - 支持单条件与多条件查询 -->
       <el-form :inline="true" :model="searchForm" class="search-form">
-        <el-form-item label="关键词">
-          <el-input v-model="searchForm.keyword" placeholder="书名/作者/ISBN" clearable style="width: 200px;" />
+        <el-form-item label="搜索方式">
+          <el-radio-group v-model="searchMode" @change="resetSearch">
+            <el-radio-button label="keyword">综合搜索</el-radio-button>
+            <el-radio-button label="single">精确搜索</el-radio-button>
+          </el-radio-group>
         </el-form-item>
+        <template v-if="searchMode === 'keyword'">
+          <el-form-item label="关键词">
+            <el-input v-model="searchForm.keyword" placeholder="书名/作者/ISBN" clearable style="width: 220px;" />
+          </el-form-item>
+        </template>
+        <template v-else>
+          <el-form-item label="书名">
+            <el-input v-model="searchForm.title" placeholder="按书名搜索" clearable style="width: 160px;" />
+          </el-form-item>
+          <el-form-item label="作者">
+            <el-input v-model="searchForm.author" placeholder="按作者搜索" clearable style="width: 160px;" />
+          </el-form-item>
+          <el-form-item label="ISBN">
+            <el-input v-model="searchForm.isbn" placeholder="按ISBN搜索" clearable style="width: 160px;" />
+          </el-form-item>
+        </template>
         <el-form-item label="分类">
-          <el-select v-model="searchForm.category" placeholder="请选择" clearable style="width: 200px;">
+          <el-select v-model="searchForm.category" placeholder="请选择" clearable style="width: 160px;">
             <el-option v-for="cat in categories" :key="cat" :label="cat" :value="cat" />
           </el-select>
         </el-form-item>
@@ -73,7 +92,9 @@
           <el-input v-model="bookForm.publisher" />
         </el-form-item>
         <el-form-item label="分类" prop="category">
-          <el-input v-model="bookForm.category" />
+          <el-select v-model="bookForm.category" placeholder="请选择分类" filterable allow-create style="width: 100%;">
+            <el-option v-for="cat in categories" :key="cat" :label="cat" :value="cat" />
+          </el-select>
         </el-form-item>
         <el-form-item label="价格">
           <el-input-number v-model="bookForm.price" :min="0" :precision="2" />
@@ -109,7 +130,7 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
-import { bookApi, borrowApi, fileApi } from '../api'
+import { bookApi, borrowApi, fileApi, categoryApi } from '../api'
 
 export default {
   name: 'BooksView',
@@ -125,9 +146,9 @@ export default {
     const dialogTitle = ref('添加图书')
     const bookFormRef = ref(null)
     const isAdmin = computed(() => localStorage.getItem('role') === '1')
-    const userId = localStorage.getItem('userId')
 
-    const searchForm = reactive({ keyword: '', category: '' })
+    const searchForm = reactive({ keyword: '', category: '', title: '', author: '', isbn: '' })
+    const searchMode = ref('keyword')
     const pagination = reactive({ pageNum: 1, pageSize: 10, total: 0 })
     const bookForm = reactive({
       id: null, title: '', author: '', isbn: '', publisher: '',
@@ -160,22 +181,24 @@ export default {
 
     const loadCategories = async () => {
       try {
-        const res = await bookApi.getCategories()
-        if (res.code === 200) categories.value = res.data
+        const res = await categoryApi.list()
+        if (res.code === 200) categories.value = res.data.map(c => c.name)
       } catch (error) {
         console.error('加载分类失败:', error)
       }
     }
 
     const handleSearch = () => { pagination.pageNum = 1; loadBooks() }
-    const resetSearch = () => { searchForm.keyword = ''; searchForm.category = ''; handleSearch() }
+    const resetSearch = () => {
+      searchForm.keyword = ''; searchForm.category = '';
+      searchForm.title = ''; searchForm.author = ''; searchForm.isbn = '';
+      handleSearch()
+    }
 
     const loadUserBorrows = async () => {
-      if (!userId) return
       try {
-        const res = await borrowApi.getUserRecords(userId)
+        const res = await borrowApi.getMyRecords()
         if (res.code === 200) {
-          // 只保留借阅中(status=0)的图书ID
           borrowedBookIds.value = new Set(
             res.data.filter(r => r.status === 0).map(r => r.bookId)
           )
@@ -248,7 +271,7 @@ export default {
     const handleBorrow = async (row) => {
       try {
         await ElMessageBox.confirm(`确定要借阅《${row.title}》吗？`, '借阅确认', { confirmButtonText: '确定', cancelButtonText: '取消' })
-        const res = await borrowApi.borrow(userId, row.id)
+        const res = await borrowApi.borrow(row.id)
         if (res.code === 200) { 
           ElMessage.success('借阅成功')
           loadBooks()
@@ -285,7 +308,7 @@ export default {
     onMounted(() => { loadBooks(); loadCategories(); loadUserBorrows() })
 
     return {
-      loading, saving, uploading, books, categories, searchForm, pagination, dialogVisible, dialogTitle,
+      loading, saving, uploading, books, categories, searchForm, searchMode, pagination, dialogVisible, dialogTitle,
       bookForm, bookRules, bookFormRef, isAdmin, loadBooks, handleSearch, resetSearch,
       showAddDialog, showEditDialog, handleSave, handleDelete, handleBorrow, handleCoverUpload, isBorrowed
     }

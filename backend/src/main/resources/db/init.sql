@@ -63,6 +63,27 @@ CREATE TABLE `borrow_record` (
     KEY `idx_book_id` (`book_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Borrow Record Table';
 
+-- Category table
+DROP TABLE IF EXISTS `category`;
+CREATE TABLE `category` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Category ID',
+    `name` VARCHAR(50) NOT NULL COMMENT 'Category Name',
+    `description` VARCHAR(200) DEFAULT NULL COMMENT 'Description',
+    `sort` INT NOT NULL DEFAULT 0 COMMENT 'Sort Order',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Create Time',
+    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Update Time',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Category Table';
+
+-- Insert default categories
+INSERT INTO `category` (`name`, `description`, `sort`) VALUES
+('编程', '编程语言与软件开发', 1),
+('数据库', '数据库技术与管理', 2),
+('前端', '前端开发技术', 3),
+('算法', '算法与数据结构', 4),
+('计算机', '计算机科学基础', 5);
+
 -- Insert default admin user (password: admin123, BCrypt encrypted)
 INSERT INTO `sys_user` (`username`, `password`, `nickname`, `role`, `status`) VALUES
 ('admin', '$2b$12$KEb90x8tFMl4WHJiHjJ.JeL.DxtN2mtmX6YUwSbj8D8BBz.WeviS2', '管理员', 1, 1);

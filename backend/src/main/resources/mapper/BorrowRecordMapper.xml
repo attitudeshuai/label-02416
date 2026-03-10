@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.library.mapper.BorrowRecordMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO borrow_record (user_id, book_id, borrow_date, due_date, status)
+        VALUES (#{userId}, #{bookId}, #{borrowDate}, #{dueDate}, #{status})
+    </insert>
+
+    <update id="update">
+        UPDATE borrow_record SET return_date = #{returnDate}, status = #{status} WHERE id = #{id}
+    </update>
+
+    <select id="findByUserId" resultType="com.library.entity.BorrowRecord">
+        SELECT br.*, b.title AS book_title, u.username
+        FROM borrow_record br
+        LEFT JOIN book b ON br.book_id = b.id
+        LEFT JOIN sys_user u ON br.user_id = u.id
+        WHERE br.user_id = #{userId}
+        ORDER BY br.create_time DESC
+    </select>
+
+    <select id="findAll" resultType="com.library.entity.BorrowRecord">
+        SELECT br.*, b.title AS book_title, u.username
+        FROM borrow_record br
+        LEFT JOIN book b ON br.book_id = b.id
+        LEFT JOIN sys_user u ON br.user_id = u.id
+        ORDER BY br.create_time DESC
+    </select>
+
+    <select id="findActiveBorrow" resultType="com.library.entity.BorrowRecord">
+        SELECT br.* FROM borrow_record br
+        WHERE br.user_id = #{userId} AND br.book_id = #{bookId} AND br.status = 0
+    </select>
+
+    <select id="countBorrowed" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM borrow_record WHERE status = 0
+    </select>
+
+    <select id="countActiveBorrowByBookId" resultType="int">
+        SELECT COUNT(*) FROM borrow_record WHERE book_id = #{bookId} AND status = 0
+    </select>
+
+    <select id="countBorrowByCategory" resultType="java.util.Map">
+        SELECT b.category, COUNT(*) AS count
+        FROM borrow_record br
+        LEFT JOIN book b ON br.book_id = b.id
+        GROUP BY b.category
+    </select>
+
+    <select id="countByCategory" resultType="java.util.Map">
+        SELECT category, COUNT(*) AS count FROM book GROUP BY category
+    </select>
+
+</mapper>

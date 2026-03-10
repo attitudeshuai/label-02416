@@ -35,6 +35,12 @@ const routes = [
         path: 'borrow',
         name: 'Borrow',
         component: () => import('../views/Borrow.vue')
+      },
+      {
+        path: 'categories',
+        name: 'Categories',
+        component: () => import('../views/Categories.vue'),
+        meta: { requiresAdmin: true }
       }
     ]
   }

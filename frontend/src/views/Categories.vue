@@ -75,7 +75,7 @@ export default {
       try {
         const [catRes, booksRes] = await Promise.all([
           categoryApi.list(),
-          bookApi.getBooks({ pageSize: 9999 })
+          bookApi.getBooks({ pageSize: 100 })
         ])
         if (catRes.code === 200) categories.value = catRes.data
         if (booksRes.code === 200) {

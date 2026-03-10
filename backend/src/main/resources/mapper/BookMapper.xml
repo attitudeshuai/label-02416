@@ -88,6 +88,10 @@
         SELECT COUNT(*) FROM book
     </select>
 
+    <select id="countByCategory" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM book WHERE category = #{category}
+    </select>
+
     <select id="findLatest" resultType="com.library.entity.Book">
         SELECT * FROM book ORDER BY create_time DESC LIMIT 5
     </select>

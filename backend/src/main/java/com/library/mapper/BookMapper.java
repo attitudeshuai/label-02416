@@ -34,6 +34,7 @@ public interface BookMapper {
                           @Param("category") String category,
                           @Param("isbn") String isbn,
                           @Param("keyword") String keyword);
+    Long countByCategory(@Param("category") String category);
 
     List<String> findAllCategories();
 

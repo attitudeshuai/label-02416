@@ -285,7 +285,7 @@ Spring Boot2整合Mybatis框架
 ### 文件接口
 | 方法 | 路径 | 说明 | 权限 |
 |------|------|------|------|
-| POST | /api/files/upload | 上传文件 | 登录用户 |
+| POST | /api/upload | 上传文件 | 管理员 |
 | GET | /api/files/{filename} | 获取文件 | 公开 |
 
 ## 📝 运行单元测试

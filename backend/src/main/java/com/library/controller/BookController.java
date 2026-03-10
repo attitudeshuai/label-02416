@@ -2,6 +2,7 @@ package com.library.controller;
 
 import com.library.common.ForbiddenException;
 import com.library.common.PageResult;
+import com.library.common.ResourceNotFoundException;
 import com.library.common.Result;
 import com.library.dto.BookQueryRequest;
 import com.library.dto.BookRequest;
@@ -32,7 +33,7 @@ public class BookController {
     public Result<Book> getById(@PathVariable Long id) {
         Book book = bookService.getById(id);
         if (book == null) {
-            return Result.error("图书不存在");
+            throw new ResourceNotFoundException("图书不存在");
         }
         return Result.success(book);
     }

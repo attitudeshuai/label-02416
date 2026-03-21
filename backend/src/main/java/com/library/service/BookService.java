@@ -6,6 +6,7 @@ import com.library.dto.BookQueryRequest;
 import com.library.entity.Book;
 import com.library.mapper.BookMapper;
 import com.library.mapper.BorrowRecordMapper;
+import com.library.mapper.CategoryMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,17 +25,22 @@ public class BookService {
     @Autowired
     private BorrowRecordMapper borrowRecordMapper;
 
+    @Autowired
+    private CategoryMapper categoryMapper;
+
     public Book getById(Long id) {
         return bookMapper.findById(id);
     }
 
     public Book addBook(Book book) {
+        validateCategory(book.getCategory());
         book.setStatus(1);
         bookMapper.insert(book);
         return book;
     }
 
     public Book updateBook(Book book) {
+        validateCategory(book.getCategory());
         if (book.getStatus() == null) {
             Book existing = bookMapper.findById(book.getId());
             if (existing != null) {
@@ -83,5 +89,16 @@ public class BookService {
 
     public Long getTotalCount() {
         return bookMapper.count();
+    }
+
+    /**
+     * 校验分类是否存在
+     */
+    private void validateCategory(String categoryName) {
+        if (categoryName != null && !categoryName.isEmpty()) {
+            if (categoryMapper.findByName(categoryName) == null) {
+                throw new BusinessException("分类不存在：" + categoryName);
+            }
+        }
     }
 }

@@ -3,7 +3,7 @@
     <el-card>
       <template #header>
         <div class="card-header">
-          <span>图书管理</span>
+          <span>{{ isAdmin ? '图书管理' : '图书列表' }}</span>
           <el-button v-if="isAdmin" type="primary" @click="showAddDialog">添加图书</el-button>
         </div>
       </template>
@@ -92,7 +92,7 @@
           <el-input v-model="bookForm.publisher" />
         </el-form-item>
         <el-form-item label="分类" prop="category">
-          <el-select v-model="bookForm.category" placeholder="请选择分类" filterable allow-create style="width: 100%;">
+          <el-select v-model="bookForm.category" placeholder="请选择分类" filterable style="width: 100%;">
             <el-option v-for="cat in categories" :key="cat" :label="cat" :value="cat" />
           </el-select>
         </el-form-item>

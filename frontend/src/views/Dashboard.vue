@@ -26,11 +26,13 @@
     <!-- 统计卡片 -->
     <div class="stats-grid">
       <div class="stat-card" v-for="(stat, index) in statCards" :key="index">
-        <div class="stat-icon" :style="{ background: stat.gradient }">
-          <component :is="stat.icon" />
-        </div>
         <div class="stat-info">
-          <span class="stat-value">{{ stat.value }}</span>
+          <div class="stat-main">
+            <div class="stat-icon" :style="{ background: stat.gradient }">
+              <component :is="stat.icon" />
+            </div>
+            <span class="stat-value">{{ stat.value }}</span>
+          </div>
           <span class="stat-label">{{ stat.label }}</span>
         </div>
         <div class="stat-trend" :class="stat.trendType">
@@ -44,7 +46,7 @@
       <!-- 分类统计图表 -->
       <div class="chart-card">
         <div class="card-header">
-          <h3>图书分类统计</h3>
+          <h3>借阅分类统计</h3>
         </div>
         <div class="chart-container" ref="chartRef" v-show="hasCategoryData"></div>
         <div class="chart-empty" v-show="!hasCategoryData">
@@ -57,7 +59,7 @@
       <div class="list-card">
         <div class="card-header">
           <h3>最新上架</h3>
-          <router-link to="/home/books" class="view-all">查看全部 →</router-link>
+          <router-link v-if="latestBooks.length > 0" to="/home/books" class="view-all">查看全部 →</router-link>
         </div>
         <div class="book-list">
           <div 
@@ -244,7 +246,7 @@ export default {
             color: '#1d1d1f',
             fontSize: 13
           },
-          formatter: '{b}: {c} 本 ({d}%)'
+          formatter: '{b}: {c} 次 ({d}%)'
         },
         legend: {
           orient: 'vertical',
@@ -382,8 +384,7 @@ export default {
   border-radius: 16px;
   padding: 24px;
   display: flex;
-  align-items: center;
-  gap: 16px;
+  align-items: flex-start;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
   transition: all 0.3s ease;
   position: relative;
@@ -396,21 +397,35 @@ export default {
 }
 
 .stat-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 18px;
   flex-shrink: 0;
+}
+
+.stat-icon :deep(svg) {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.stat-icon :deep(.el-icon) {
+  font-size: 16px !important;
 }
 
 .stat-info {
   display: flex;
   flex-direction: column;
   flex: 1;
+}
+
+.stat-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .stat-value {
@@ -423,7 +438,7 @@ export default {
 .stat-label {
   font-size: 14px;
   color: #86868b;
-  margin-top: 4px;
+  margin-top: 8px;
 }
 
 .stat-trend {
@@ -525,7 +540,7 @@ export default {
 }
 
 .chart-empty .el-icon {
-  font-size: 64px;
+  font-size: 48px;
   opacity: 0.3;
 }
 
@@ -598,14 +613,14 @@ export default {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px;
+  height: 280px;
   color: #86868b;
-  gap: 12px;
+  gap: 16px;
 }
 
 .empty-state .el-icon {
   font-size: 48px;
-  opacity: 0.5;
+  opacity: 0.3;
 }
 
 /* 快捷操作 */
@@ -642,14 +657,22 @@ export default {
 }
 
 .action-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 14px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 24px;
+}
+
+.action-icon :deep(svg) {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+.action-icon :deep(.el-icon) {
+  font-size: 18px !important;
 }
 
 .action-card span {

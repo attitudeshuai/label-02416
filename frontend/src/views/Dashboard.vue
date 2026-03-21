@@ -88,36 +88,12 @@
       </div>
     </div>
 
-    <!-- 快捷操作 -->
-    <div class="quick-actions">
-      <h3>快捷操作</h3>
-      <div class="actions-grid">
-        <router-link to="/home/books" class="action-card">
-          <div class="action-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-            <Reading />
-          </div>
-          <span>浏览图书</span>
-        </router-link>
-        <router-link to="/home/borrow" class="action-card">
-          <div class="action-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-            <Collection />
-          </div>
-          <span>借阅记录</span>
-        </router-link>
-        <div class="action-card" @click="refreshData">
-          <div class="action-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-            <Refresh />
-          </div>
-          <span>刷新数据</span>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
 <script>
 import { ref, onMounted, computed } from 'vue'
-import { Reading, User, Collection, Refresh } from '@element-plus/icons-vue'
+import { Reading, User, Collection } from '@element-plus/icons-vue'
 import { PieChart } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 import { dashboardApi, bookApi } from '../api'
@@ -128,7 +104,7 @@ import { dashboardApi, bookApi } from '../api'
  */
 export default {
   name: 'DashboardView',
-  components: { Reading, User, Collection, Refresh, PieChart },
+  components: { Reading, User, Collection, PieChart },
   setup() {
     // 用户昵称
     const nickname = ref(localStorage.getItem('nickname') || '用户')
@@ -305,13 +281,6 @@ export default {
       }, 100)
     }
 
-    /**
-     * 刷新数据
-     */
-    const refreshData = () => {
-      loadData()
-    }
-
     onMounted(loadData)
 
     return { 
@@ -322,7 +291,6 @@ export default {
       chartRef,
       statCards,
       getBookColor,
-      refreshData,
       hasCategoryData
     }
   }
@@ -623,64 +591,6 @@ export default {
   opacity: 0.3;
 }
 
-/* 快捷操作 */
-.quick-actions h3 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #1d1d1f;
-  margin: 0 0 16px 0;
-}
-
-.actions-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-
-.action-card {
-  background: white;
-  border-radius: 16px;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  text-decoration: none;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.action-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
-}
-
-.action-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-}
-
-.action-icon :deep(svg) {
-  width: 18px !important;
-  height: 18px !important;
-}
-
-.action-icon :deep(.el-icon) {
-  font-size: 18px !important;
-}
-
-.action-card span {
-  font-size: 14px;
-  font-weight: 500;
-  color: #1d1d1f;
-}
-
 /* 响应式适配 */
 @media (max-width: 1200px) {
   .stats-grid {
@@ -694,10 +604,6 @@ export default {
 
 @media (max-width: 768px) {
   .stats-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .actions-grid {
     grid-template-columns: 1fr;
   }
   

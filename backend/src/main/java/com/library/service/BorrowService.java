@@ -58,7 +58,7 @@ public class BorrowService {
         bookMapper.increaseStock(bookId);
 
         record.setReturnDate(LocalDateTime.now());
-        record.setStatus(0);
+        record.setStatus(1);
         borrowRecordMapper.update(record);
 
         return record;
